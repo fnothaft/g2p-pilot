@@ -27,25 +27,33 @@ trait SiteRegression extends Serializable {
 
   val regressionName: String
 
-  protected def clipOrKeepState(gs: GenotypeState): Int
+  protected def clipOrKeepState(gs: GenotypeState): Double
 
+  /* 
+  Takes in an RDD of GenotypeStates, constructs the proper observations array for each site, and feeds it into 
+  regressSite
+  */
   final def apply[T](rdd: RDD[GenotypeState],
                      phenotypes: RDD[Phenotype[T]]): RDD[Association] = {
     rdd.keyBy(_.sampleId)
+      // join together the samples with both genotype and phenotype entry
       .join(phenotypes.keyBy(_.sampleId))
       .map(kvv => {
+        // unpack the entry of the joined rdd into id and actual info
         val (_, p) = kvv
+        // unpack the information into genotype state and pheno
         val (gs, pheno) = p
+        // unpack the 
         ((gs.referenceAllele, pheno.phenotype), p)
-      }).groupByKey()
+      }).groupByKey() // what are the keys here? (gs.referenceAllele, pheno.phenotype)?
       .map(site => {
         val (((pos, allele), phenotype), observations) = site
-
         // build array to regress on, and then regress
         regressSite(observations.map(p => {
+          // unpack p
           val (genotypeState, phenotype) = p
-
-          (clipOrKeepState(genotypeState), Array(phenotype.toDouble))
+          // return genotype and phenotype in the correct form
+          (clipOrKeepState(genotypeState), phenotype.toDouble)
         }).toArray, pos, allele, phenotype)
       })
   }
@@ -56,7 +64,7 @@ trait SiteRegression extends Serializable {
    * Computes the association score of a genotype against a phenotype and
    * covariates. To be implemented by any class that implements this trait.
    */
-  protected def regressSite(observations: Array[(Int, Array[Double])],
+  protected def regressSite(observations: Array[(Double, Array[Double])],
                             locus: ReferenceRegion,
                             altAllele: String,
                             phenotype: String): Association
@@ -64,14 +72,14 @@ trait SiteRegression extends Serializable {
 
 trait Additive extends SiteRegression {
 
-  protected def clipOrKeepState(gs: GenotypeState): Int = {
-    gs.genotypeState
+  protected def clipOrKeepState(gs: GenotypeState): Double = {
+    gs.genotypeState.toDouble
   }
 }
 
 trait Dominant extends SiteRegression {
 
-  protected def clipOrKeepState(gs: GenotypeState): Int = {
-    if (gs.genotypeState == 0) 0 else 1
+  protected def clipOrKeepState(gs: GenotypeState): Double = {
+    if (gs.genotypeState == 0) 0.0 else 1.0
   }
 }

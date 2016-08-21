@@ -6,7 +6,7 @@
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
     <version>7</version>
-    <relativePath />
+    <relativePath/>
   </parent>
 
   <groupId>net.fnothaft</groupId>
@@ -18,6 +18,7 @@
   <modules>
     <module>gnocchi-core</module>
     <module>gnocchi-cli</module>
+    <module>Gnocchi-test</module>
   </modules>
 
   <licenses>
@@ -41,6 +42,12 @@
       <url>http://www.fnothaft.net</url>
       <organization>U.C. Berkeley Computer Science</organization>
       <organizationUrl>http://www.cs.berkeley.edu/</organizationUrl>
+    </developer>
+    <developer>
+      <id>tkdagdelen</id>
+      <name>Taner Dagdelen</name>
+      <email>tkdagdelen@berkeley.edu</email>
+      <organization>U.C. Berkeley Bioengineering/AMPLab</organization>
     </developer>
   </developers>
   <issueManagement>
@@ -149,7 +156,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.17</version>
           <configuration>
-            <skipTests>true</skipTests>
+            <skipTests>false</skipTests>
           </configuration>
         </plugin>
         <!-- enable scalatest -->
@@ -254,6 +261,11 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.apache.parquet</groupId>
+        <artifactId>parquet-column</artifactId>
+        <version>1.8.1</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-math3</artifactId>
         <version>3.6.1</version>
@@ -272,6 +284,17 @@
         <groupId>org.apache.parquet</groupId>
         <artifactId>parquet-avro</artifactId>
         <version>${parquet.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.parquet</groupId>
+        <artifactId>parquet-scala_${scala.version.prefix}</artifactId>
+        <version>${parquet.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.bdgenomics.utils</groupId>
@@ -345,11 +368,27 @@
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
-      <dependency>
+<!--       <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-core_${scala.version.prefix}</artifactId>
         <version>${spark.version}</version>
         <scope>provided</scope>
+      </dependency> -->
+      <dependency>
+        <groupId>org.apache.spark</groupId>
+        <artifactId>spark-core_2.10</artifactId>
+        <version>${spark.version}</version>
+        <scope>provided</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.spark</groupId>
